@@ -183,6 +183,7 @@ export const defaultKeyBindings: KeyBindingConfig = {
   [Command.DELETE_CHAR_LEFT]: [{ key: 'backspace' }, { key: 'h', ctrl: true }],
   [Command.DELETE_CHAR_RIGHT]: [{ key: 'delete' }, { key: 'd', ctrl: true }],
   [Command.UNDO]: [
+    { key: 'z', ctrl: true, shift: false },
     { key: 'z', cmd: true, shift: false },
     { key: 'z', alt: true, shift: false },
   ],

@@ -1722,7 +1722,10 @@ Logging in with Google... Restarting Gemini CLI to continue.
       } else if (keyMatchers[Command.EXIT](key)) {
         handleCtrlDPress();
         return true;
-      } else if (keyMatchers[Command.SUSPEND_APP](key)) {
+      } else if (
+        process.platform !== 'win32' &&
+        keyMatchers[Command.SUSPEND_APP](key)
+      ) {
         handleSuspend();
       } else if (
         keyMatchers[Command.TOGGLE_COPY_MODE](key) &&

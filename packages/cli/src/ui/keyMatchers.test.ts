@@ -137,13 +137,13 @@ describe('keyMatchers', () => {
     {
       command: Command.UNDO,
       positive: [
+        createKey('z', { shift: false, ctrl: true }),
         createKey('z', { shift: false, cmd: true }),
         createKey('z', { shift: false, alt: true }),
       ],
       negative: [
         createKey('z'),
         createKey('z', { shift: true, cmd: true }),
-        createKey('z', { shift: false, ctrl: true }),
       ],
     },
     {

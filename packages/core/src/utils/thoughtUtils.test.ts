@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseThought } from './thoughtUtils.js';
+import { extractTaggedThoughtBlocks, parseThought } from './thoughtUtils.js';
 
 describe('parseThought', () => {
   it.each([
@@ -76,5 +76,40 @@ describe('parseThought', () => {
     },
   ])('should correctly parse $name', ({ rawText, expected }) => {
     expect(parseThought(rawText)).toEqual(expected);
+  });
+});
+
+describe('extractTaggedThoughtBlocks', () => {
+  it('extracts thought tags and leaves visible text', () => {
+    const result = extractTaggedThoughtBlocks(
+      'Hello <thought>**Plan** internal details</thought> world',
+    );
+
+    expect(result).toEqual({
+      thoughts: ['**Plan** internal details'],
+      visibleText: 'Hello  world',
+    });
+  });
+
+  it('extracts reasoning tags and supports multiline content', () => {
+    const result = extractTaggedThoughtBlocks(
+      '<reasoning>line 1\nline 2</reasoning>Done',
+    );
+
+    expect(result).toEqual({
+      thoughts: ['line 1\nline 2'],
+      visibleText: 'Done',
+    });
+  });
+
+  it('extracts multiple tagged blocks', () => {
+    const result = extractTaggedThoughtBlocks(
+      'A<thought>first</thought>B<reasoning>second</reasoning>C',
+    );
+
+    expect(result).toEqual({
+      thoughts: ['first', 'second'],
+      visibleText: 'ABC',
+    });
   });
 });

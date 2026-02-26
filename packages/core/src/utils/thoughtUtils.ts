@@ -9,6 +9,8 @@ export type ThoughtSummary = {
   description: string;
 };
 
+const TAGGED_THOUGHT_REGEX = /<(thought|reasoning)>([\s\S]*?)<\/\1>/gi;
+
 const START_DELIMITER = '**';
 const END_DELIMITER = '**';
 
@@ -51,4 +53,30 @@ export function parseThought(rawText: string): ThoughtSummary {
   ).trim();
 
   return { subject, description };
+}
+
+/**
+ * Extracts XML-tagged thought/reasoning blocks from text and returns the
+ * remaining visible content.
+ */
+export function extractTaggedThoughtBlocks(rawText: string): {
+  thoughts: string[];
+  visibleText: string;
+} {
+  const thoughts: string[] = [];
+  const visibleText = rawText.replace(
+    TAGGED_THOUGHT_REGEX,
+    (_match: string, _tag: string, content: string) => {
+      const trimmed = content.trim();
+      if (trimmed) {
+        thoughts.push(trimmed);
+      }
+      return '';
+    },
+  );
+
+  return {
+    thoughts,
+    visibleText,
+  };
 }

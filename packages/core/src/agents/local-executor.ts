@@ -52,7 +52,10 @@ import { getErrorMessage } from '../utils/errors.js';
 import { templateString } from './utils.js';
 import { DEFAULT_GEMINI_MODEL, isAutoModel } from '../config/models.js';
 import type { RoutingContext } from '../routing/routingStrategy.js';
-import { parseThought } from '../utils/thoughtUtils.js';
+import {
+  extractTaggedThoughtBlocks,
+  parseThought,
+} from '../utils/thoughtUtils.js';
 import { type z } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import { debugLogger } from '../utils/debugLogger.js';
@@ -790,7 +793,18 @@ export class LocalAgentExecutor<TOutput extends z.ZodTypeAny> {
             .join('') || '';
 
         if (text) {
-          textResponse += text;
+          const { thoughts, visibleText } = extractTaggedThoughtBlocks(text);
+
+          for (const rawThought of thoughts) {
+            const { subject } = parseThought(rawThought);
+            if (subject) {
+              this.emitActivity('THOUGHT_CHUNK', { text: subject });
+            }
+          }
+
+          if (visibleText) {
+            textResponse += visibleText;
+          }
         }
       }
     }

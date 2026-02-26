@@ -758,6 +758,51 @@ describe('Turn', () => {
       expect(events).toEqual([expectedEvent]);
     });
 
+
+    it('should convert tagged thought blocks in text into thought events', async () => {
+      const mockResponseStream = (async function* () {
+        yield {
+          type: StreamEventType.CHUNK,
+          value: {
+            candidates: [
+              {
+                content: {
+                  parts: [
+                    {
+                      text: 'Visible before<thought>**Planning** internal reasoning</thought>Visible after',
+                    },
+                  ],
+                },
+              },
+            ],
+            responseId: 'trace-tagged-thought',
+          } as unknown as GenerateContentResponse,
+        };
+      })();
+      mockSendMessageStream.mockResolvedValue(mockResponseStream);
+
+      const events = [];
+      for await (const event of turn.run(
+        { model: 'gemini' },
+        [{ text: 'Hi' }],
+        new AbortController().signal,
+      )) {
+        events.push(event);
+      }
+
+      expect(events).toEqual([
+        {
+          type: GeminiEventType.Thought,
+          value: { subject: 'Planning', description: 'internal reasoning' },
+          traceId: 'trace-tagged-thought',
+        },
+        {
+          type: GeminiEventType.Content,
+          value: 'Visible beforeVisible after',
+          traceId: 'trace-tagged-thought',
+        },
+      ]);
+    });
     it('should process all parts when thought is first part in chunk', async () => {
       const mockResponseStream = (async function* () {
         yield {

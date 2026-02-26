@@ -25,7 +25,11 @@ import {
 } from '../utils/errors.js';
 import type { GeminiChat } from './geminiChat.js';
 import { InvalidStreamError } from './geminiChat.js';
-import { parseThought, type ThoughtSummary } from '../utils/thoughtUtils.js';
+import {
+  extractTaggedThoughtBlocks,
+  parseThought,
+  type ThoughtSummary,
+} from '../utils/thoughtUtils.js';
 import { createUserContent } from '@google/genai';
 import type { ModelConfigKey } from '../services/modelConfigService.js';
 import { getCitations } from '../utils/generateContentResponseUtilities.js';
@@ -319,7 +323,20 @@ export class Turn {
 
         const text = getResponseText(resp);
         if (text) {
-          yield { type: GeminiEventType.Content, value: text, traceId };
+          const { thoughts, visibleText } = extractTaggedThoughtBlocks(text);
+
+          for (const rawThought of thoughts) {
+            const thought = parseThought(rawThought);
+            yield {
+              type: GeminiEventType.Thought,
+              value: thought,
+              traceId,
+            };
+          }
+
+          if (visibleText) {
+            yield { type: GeminiEventType.Content, value: visibleText, traceId };
+          }
         }
 
         // Handle function calls (requesting tool execution)
